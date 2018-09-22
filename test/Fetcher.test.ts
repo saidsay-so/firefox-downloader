@@ -40,25 +40,51 @@ describe("Path", () => {
 });
 
 describe("Platform", () => {
-    beforeAll(() => mock(process, "arch", "x32"));
+    const originalArch = process.arch;
+
+    describe("x32", () => {
+        beforeAll(() => mock(process, "arch", "x32"));
+
+        it("should give x32 windows namespace", () => {
+            expect(new Fetcher("", "win32").getNamespace())
+                .toBe("gecko.v2.mozilla-release.nightly.latest.firefox.win32-opt");
+        });
+
+        it("should give x32 linux namespace", () => {
+            expect(new Fetcher("", "linux").getNamespace())
+                .toBe("gecko.v2.mozilla-release.nightly.latest.firefox.linux-opt");
+        });
+
+        afterAll(() => mock(process, "arch", originalArch));
+
+    });
+
+    describe("x64", () => {
+        beforeAll(() => mock(process, "arch", "x64"));
+
+        it("should give x64 windows namespace", () => {
+            expect(new Fetcher("", "win32").getNamespace())
+                .toBe("gecko.v2.mozilla-release.nightly.latest.firefox.win64-opt");
+        });
+
+        it("should give x64 macOS namespace", () => {
+            expect(new Fetcher("", "darwin").getNamespace())
+                .toBe("gecko.v2.mozilla-release.nightly.latest.firefox.macosx64-opt");
+        });
+
+        it("should give x64 linux namespace", () => {
+            expect(new Fetcher("", "linux").getNamespace())
+                .toBe("gecko.v2.mozilla-release.nightly.latest.firefox.linux64-opt");
+        });
+
+        afterAll(() => mock(process, "arch", originalArch));
+
+    });
 
     it("should throw because (aix) platform is not supported", () => {
         expect(() => new Fetcher("", "aix")).toThrowError("Platform not supported");
     });
 
-    it("should give x32 windows namespace", () => {
-        expect(new Fetcher("", "win32").getNamespace())
-        .toBe("gecko.v2.mozilla-release.nightly.latest.firefox.win32-opt");
-    });
-
-    // TODO: Code for macOS
-
-    it("should give x32 linux namespace", () => {
-        expect(new Fetcher("", "linux").getNamespace())
-        .toBe("gecko.v2.mozilla-release.nightly.latest.firefox.linux-opt");
-    });
-
-    afterAll(() => mock(process, "arch", "x64"));
 });
 
 describe("Download", () => {
