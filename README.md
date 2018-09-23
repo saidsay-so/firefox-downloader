@@ -32,7 +32,7 @@ const fetcher = new Fetcher(destination: string, platform?: NodeJS.Platform)
 ```js
 fetcher.download(progressCallback?: (progress: number, size: number) => void)
 ```
-Download *Firefox* to the provided destination. Take an optional function to indecate progress.
+Download *Firefox* to the provided destination. Take an optional function to indicate progress.
 
 #### `getPath`
 ```js
