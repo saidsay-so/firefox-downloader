@@ -12,12 +12,14 @@ npm install firefox-downloader
 
 ```ts
 import Fetcher from 'firefox-downloader'
+// const Fetcher = require('firefox-downloader').default
 
 const fetcher = new Fetcher(destination)
 
 fetcher.download()
+    .then(firefoxPath => spawn(firefoxPath))
 
-spawn(fetcher.getPath())
+
 ```
 
 ## API
@@ -29,13 +31,13 @@ const fetcher = new Fetcher(destination: string, platform?: NodeJS.Platform)
 
 
 #### `download`
-```js
-fetcher.download(progressCallback?: (progress: number, size: number) => void)
+```ts
+fetcher.download(progressCallback?: (progress: number, size: number) => void): Promise<string>
 ```
 Download *Firefox* to the provided destination. Take an optional function to indicate progress.
 
 #### `getPath`
 ```js
-fetcher.getPath()
+fetcher.getPath(): string
 ```
 Give the path to *Firefox* executable.
