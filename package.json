@@ -13,7 +13,7 @@
     "node-fetch": "^2.2.0"
   },
   "scripts": {
-    "build": "npx tsc --overwrite",
+    "build": "npx tsc",
     "lint": "npx tslint --project . --fix",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint",
