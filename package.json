@@ -2,10 +2,10 @@
   "name": "firefox-downloader",
   "version": "0.1.0",
   "description": "Get the latest version of Firefox and unpack it.",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "author": "Musikid",
   "license": "MIT",
-  "types": "dist/index.d.ts",
+  "types": "lib/index.d.ts",
   "dependencies": {
     "decompress": "^4.2.0",
     "fs-extra": "^7.0.0",
@@ -17,6 +17,9 @@
     "lint": "npx tslint --project . --fix",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run lint && git add -A src",
+    "postversion": "git push && git push --tags",
     "test": "npx jest --detectOpenHandles"
   },
   "devDependencies": {
