@@ -1,4 +1,6 @@
 src
+coverage
+test
 tsconfig.json
 tslint.json
 jest.config.js
