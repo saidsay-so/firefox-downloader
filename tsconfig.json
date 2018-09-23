@@ -12,7 +12,7 @@
     "declaration": true,
     /* Generates corresponding '.d.ts' file. */
     // "sourceMap": true,                     /* Generates corresponding '.map' file. */
-    "outDir": "./build",
+    "outDir": "./dist",
     /* Redirect output structure to the directory. */
     "rootDir": "./src",
 
