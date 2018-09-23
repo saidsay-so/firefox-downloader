@@ -1,7 +1,9 @@
+import { spawnSync } from "child_process";
 import decompress from "decompress";
-import { createWriteStream, pathExistsSync, remove, statSync } from "fs-extra";
+import { copy, createWriteStream, ensureDir, pathExists, remove, stat } from "fs-extra";
 import fetch from "node-fetch";
 import { join } from "path";
+
 // tslint:disable-next-line:no-var-requires
 const TaskClusterContainer = require("get-firefox/lib/taskcluster-container");
 
@@ -13,9 +15,10 @@ const assertPlatform = (platform: NodeJS.Platform | undefined) => {
     if (!platform || !PLATFORMS.includes(platform)) { throw NOTSUPP; }
 };
 
-const isDir = (path: string) => pathExistsSync(path) && statSync(path).isDirectory();
+const isDir = async (path: string) => (await pathExists(path)) && (await stat(path)).isDirectory();
 
 export class Fetcher {
+    public isDownloaded: boolean;
     private platform: NodeJS.Platform;
     private destination: string;
     private container: any;
@@ -26,6 +29,7 @@ export class Fetcher {
 
         this.destination = dest;
 
+        this.isDownloaded = false;
         this.container = new TaskClusterContainer({
             fileEnding: this.getPlatformExt(),
             namespace: this.getNamespace(),
@@ -38,7 +42,7 @@ export class Fetcher {
             // @ts-ignore
             const fileSize = res.headers.has("content-length") ? parseInt(res.headers.get("content-length"), 10) : 0;
 
-            if (!isDir(this.destination)) {
+            if (!(await isDir(this.destination))) {
                 return reject(DIRNOEXIST);
             }
 
@@ -55,25 +59,57 @@ export class Fetcher {
             res.body.on("data", onData);
 
             const handleFile = async () => {
-                // TODO: Code for macOS
-                await decompress(archivePath, this.destination);
-                await remove(archivePath);
+                if (this.platform !== "darwin") {
+                    await decompress(archivePath, this.destination);
+                    await remove(archivePath);
+                } else if (process.platform === "darwin") {
+                    const mountDir = join(this.destination, "DMG");
+                    await ensureDir(mountDir);
 
+                    const app = join(mountDir, "Firefox.app");
+                    const mountStatus = spawnSync("hdiutil",
+                        ["attach", "-quiet", "-mountpoint", mountDir, archivePath]).status;
+
+                    if (mountStatus !== 0) {
+                        throw new Error(`Mounting ${archivePath} failed. Status: ${mountStatus}`);
+                    }
+
+                    if (await pathExists(app)) {
+                        await ensureDir(join(this.destination, "Firefox.app"));
+                        await copy(app, join(this.destination, "Firefox.app"));
+                    }
+
+                    const unmountStatus = spawnSync("hdiutil",
+                        ["detach", "-quiet", mountDir]).status;
+
+                    if (unmountStatus !== 0) {
+                        throw new Error(`Unmounting ${mountDir} failed. Status: ${unmountStatus}`);
+                    }
+
+                    await remove(mountDir);
+                } else {
+                    await remove(archivePath);
+                    reject(new Error("hdiutil is not available on your platform"));
+                }
+
+                this.isDownloaded = true;
                 return resolve(this.getPath());
             };
 
+            res.body.on("error", reject);
             res.body.on("end", handleFile);
 
         });
     }
 
     public getPath() {
-        // TODO: Code for macOS
+        const dir = this.platform === "darwin" ? join("Firefox.app", "Contents", "MacOS") : "firefox";
+
         const executable = this.platform === "win32" ? "firefox.exe" : "firefox";
-        return join(this.destination, "firefox", executable);
+        return join(this.destination, dir, executable);
     }
 
-    public getNamespace() {
+    private getNamespace() {
         const is64arch = process.arch === "x64";
         if (is64arch) {
             switch (this.platform) {
@@ -94,7 +130,7 @@ export class Fetcher {
         }
     }
 
-    public getPlatformExt() {
+    private getPlatformExt() {
         switch (this.platform) {
             case "win32":
                 return "target.zip";
