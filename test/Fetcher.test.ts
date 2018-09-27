@@ -25,7 +25,7 @@ describe("Path", () => {
         expect(linuxFectcher.getPath()).toBe(join(exampleDir, "firefox", "firefox"));
 
         const macosxFectcher = new Fetcher(exampleDir, "darwin");
-        expect(macosxFectcher.getPath()).toBe("/tmp/Firefox.app/Contents/MacOS/firefox");
+        expect(macosxFectcher.getPath()).toBe(join(exampleDir, "Firefox.app", "Contents", "MacOS", "firefox"));
     });
 
     it("should give right extension according to your platform", () => {
