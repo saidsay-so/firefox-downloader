@@ -18,7 +18,6 @@ const assertPlatform = (platform: NodeJS.Platform | undefined) => {
 const isDir = async (path: string) => (await pathExists(path)) && (await stat(path)).isDirectory();
 
 export class Fetcher {
-    public isDownloaded: boolean;
     private platform: NodeJS.Platform;
     private destination: string;
     private container: any;
@@ -29,7 +28,6 @@ export class Fetcher {
 
         this.destination = dest;
 
-        this.isDownloaded = false;
         this.container = new TaskClusterContainer({
             fileEnding: this.getPlatformExt(),
             namespace: this.getNamespace(),
@@ -92,7 +90,6 @@ export class Fetcher {
                     reject(new Error("hdiutil is not available on your platform"));
                 }
 
-                this.isDownloaded = true;
                 return resolve(this.getPath());
             };
 
@@ -100,6 +97,10 @@ export class Fetcher {
             res.body.on("end", handleFile);
 
         });
+    }
+
+    public isDownloaded() {
+        return pathExists(this.getPath());
     }
 
     public getPath() {

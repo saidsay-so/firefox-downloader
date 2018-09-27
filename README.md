@@ -37,7 +37,13 @@ fetcher.download(progressCallback?: (progress: number, size: number) => void): P
 Download *Firefox* to the provided destination. Take an optional function to indicate progress.
 
 #### `getPath`
-```js
+```ts
 fetcher.getPath(): string
 ```
 Give the path to *Firefox* executable.
+
+#### `isDownloaded`
+```ts
+fetcher.isDownloaded(): Promise<boolean>
+```
+Checks if the executable is available.
